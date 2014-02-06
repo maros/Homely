@@ -1,0 +1,14 @@
+%= include 'header'
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+          <div class="container">
+            %= include 'branding'
+          </div>
+        </div>
+        <div class="container">
+          <div class="page-header">
+            <h1><%= title %></h1>
+          </div>
+          <%= content %>
+        </div>
+        
+%= include 'footer'

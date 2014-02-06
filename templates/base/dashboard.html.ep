@@ -1,0 +1,121 @@
+% layout 'default';
+% title 'Welcome home!';
+
+<div class="dashboard-alert dashboard-box back-danger">
+  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+  <span class="icon-comment2"></span>
+  <span class="highlight">Detected motion while everybody was gone</span><br>
+  <em>2 hours ago (2014.01.31 at 14:30)</em>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="dashboard-box back-primary">
+      <h2>Current status</h2>
+      
+      <div class="row">
+        <div class="col-xs-7">
+          Inside base temperature
+        </div>
+        <div class="col-xs-5 highlight">
+          +1°C (19-20°C) 
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-7">
+          Inside temperature & humidity
+        </div>
+        <div class="col-xs-5 highlight">
+          19.5°C - 54%
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-7">
+          Weather
+        </div>
+        <div class="col-xs-5 highlight">
+          16°C / Fair
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-7">
+          Sunrise/set
+        </div>
+        <div class="col-xs-5 highlight">
+          <span class="icon-sun"></span> 6:34 - 16:52 <span class="icon-moon"></span>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="dashboard-box back-warning">
+      <h2>Mode</h2>
+      <div class="btn-group" id="selector_mode">
+        <button type="button" class="btn back-danger btn-lg dropdown-toggle" data-toggle="dropdown">
+          <span class="prefix">Mode</span>
+          At Home
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#">Gone Long</a></li>
+          <li><a href="#">Gone Short</a></li>
+          <li><a href="#">At Home</a></li>
+          <li class="divider"></li>
+          <li><a href="#">Manual</a></li>
+        </ul>
+      </div>
+      <div class="btn-group" id="selector_scene">
+        <button type="button" class="btn back-danger btn-lg dropdown-toggle" data-toggle="dropdown">
+          <span class="prefix">Scene</span>
+          Night
+          <span class="caret"></span>
+          <span class="sr-only">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#">Vaccation</a></li>
+          <li><a href="#">Gone</a></li>
+          <li><a href="#">At Home</a></li>
+          <li><a href="#">Nightime</a></li>
+          <li><a href="#">Wakeup</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="dashboard-box back-success">
+      <h2>Activity Log</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>
+            !
+            </th>
+            <th>
+            Date & Time
+            </th>
+            <th>
+            Message
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="info">
+            <td>Info</td>
+            <td>2 hours ago</td>
+            <td>Katharina switched from 'Gone Long' to 'At Home'</td>
+          </tr>
+          <tr class="danger">
+            <td>Alert</td>
+            <td>3 hours ago</td>
+            <td>Detected motion while everybody was gone</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

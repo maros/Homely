@@ -1,0 +1,11 @@
+%= include 'header'
+%= include 'navigation'
+
+        <div class="container">
+          <div class="page-header">
+            <h1><%= title %></h1>
+          </div>
+          <%= content %>
+        </div>
+        
+%= include 'footer'

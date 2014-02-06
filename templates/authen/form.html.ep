@@ -1,0 +1,25 @@
+% layout 'authen';
+% title 'Please log in';
+
+<form method="POST" action="/authen">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="dashboard-box back-primary">
+                <div class="input-group <%= ' has-error' if defined $error %>">
+                    <span class="input-group-addon">@</span>
+                    <input name="access_token" autocomplete="off" required type="text" class="form-control" placeholder="Access token">
+                    <div class="input-group-btn">
+                        <button type="submit" class="btn btn-warning">Submit</button>
+                    </div>
+                </div>
+                % if (defined $error) {
+                <div class="errormessage">
+                    <%= $error; %>
+                </div>
+                % }
+            </div>
+        </div>
+        <div class="col-md-6"></div>
+    </div>
+</form>
