@@ -1,5 +1,4 @@
 package App::Homely {
-    use warnings;
     use 5.016; 
     
     our $AUTHORITY = 'cpan:MAROS';
@@ -12,32 +11,23 @@ package App::Homely {
     };
     
     use MooseX::App::Simple qw(Color);
+    with qw(App::Homely::Role::Common);
+    
     use App::Homely::Core;
-    use File::HomeDir qw();
     
-    option 'config' => (
-        is              => 'rw',
-        isa             => 'Str',
-        documentation   => 'Location of the config file',
-        default         => sub {
-            return File::HomeDir->my_home.'/.homely/config.json',
-        },
+    option '+config_file' => (
+        cmd_flag        => 'config',
     );
     
-    option 'debug' => (
-        is              => 'rw',
-        isa             => 'Bool',
-        documentation   => 'Enable debug mode',
-        default         => 1,
-    );
+    option '+debug' => ();
     
     sub run {
         my ($self) = @_;
         
-        App::Homely::Core->run(
+        App::Homely::Core->new(
             debug       => $self->debug,
-            config_file => $self->config,
-        );
+            config_file => $self->config_file,
+        )->run();
     }
 }
 
@@ -49,7 +39,7 @@ App::Homely - Description
 
 =head1 SYNOPSIS
 
-  use TEMPLATE;
+  bash> homely
 
 =head1 DESCRIPTION
 
