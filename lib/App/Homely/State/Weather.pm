@@ -31,6 +31,9 @@ package App::Homely::State::Weather {
         isa             => 'Str',
     );
     
+    # Cloudy, Mostly Cloudy, Partly Cloudy, Clear, 
+    # Chance of Rain. Low, Chance of Rain. High, Overcast
+    
     has 'wind' => (
         is              => 'rw',
         isa             => 'Num',
@@ -45,24 +48,27 @@ package App::Homely::State::Weather {
         return 60 * 60;
     }
     
-    sub fetch_state {
+    sub BUILD {
         my ($self) = @_;
-        
+        warn "BUILD";
         my $config              = App::Homely::Core->instance->config;   
         my $location            = $config->location;
         my $location_string     = join(', ',$location->{city},$location->{country});
         
         my $weather = Weather::Underground->new(
             place       => $location_string,
-            debug       => 1,
+            debug       => 0,
         ) or $log->fatal("Error, could not create new weather object: $@\n");
         
-        my $current = $weather->get_weather()->[0];
+        my $results = $weather->get_weather()
+            or $log->fatal("Error, could not get weather for $location_string: $@\n");
+            
+        my $current = $results->[0];
         
         use Data::Dumper;
         {
           local $Data::Dumper::Maxdepth = 2;
-          warn __FILE__.':line'.__LINE__.':'.Dumper($weather);
+          warn __FILE__.':line'.__LINE__.':'.Dumper($results);
         }
         
         $self->temperature($current->{temperature_celsius});
@@ -79,7 +85,7 @@ package App::Homely::State::Weather {
         my ($string) = @_;
         
         if ($string =~ /^(\d+):(\d+)\s(AM|PM)\s\w+$/) {
-            my $now = DateTime->now;
+            my $now = DateTime->now( time_zone => 'floating' );
             my $time = $now->clone->set( hour => ($3 eq 'PM' ? $1+12:$1), minute => $2 );
             if ($now > $time) {
                 $time->add(days => 1);
