@@ -26,7 +26,6 @@ package App::Homely::Core {
     has 'states' => (
         is              => 'rw',
         isa             => 'HashRef[App::Homely::State]',
-        lazy_build      => 1,
     );
     
     sub run {
@@ -63,7 +62,7 @@ package App::Homely::Core {
 #        );
         
         # Register states
-        $self->states();
+        $self->init_states();
         
         # Start webserver
         App::Homely::Web->daemon();
@@ -89,7 +88,7 @@ package App::Homely::Core {
         say('CHECK');
     }
     
-    sub _build_states {
+    sub init_states {
         my ($self) = @_;
         
         # Load states
@@ -109,7 +108,7 @@ package App::Homely::Core {
                 $log->info('Loaded state '.$state_class->moniker);
             }
             
-            $states->{$state_moniker} = $state_class->init_state();
+            $states->{$state_class->moniker} = $state_class->get_state();
         }
         
         

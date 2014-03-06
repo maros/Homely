@@ -23,8 +23,7 @@ package App::Homely::Config {
             die 'Could not load config file at '.$location;
         }
         
-        my $slurped = Path::Class::File
-            ->new($location)
+        my $slurped = $location
             ->slurp( iomode => '<:encoding(UTF-8)' );
             
         my $config = JSON::XS

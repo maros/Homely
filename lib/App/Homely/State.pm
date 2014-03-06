@@ -11,21 +11,20 @@ package App::Homely::State {
     
     use Log::Any qw($log);
     
-    sub fetch_state;
-    
     sub get_state {
         my ($class) = @_;
         if (blessed $class) {
             return $class;
         } else {
-            return $class->load($class->_state_file) || $class->new();
+            my $file = $class->_state_file->stringify;
+            if (-e $file) {
+                return $class->load();
+            } else {
+                my $self = $class->new();
+                $self->store();
+                return $self;
+            }
         }
-    }
-    
-    
-    sub _state_file {
-        my ($class) = @_;
-        return Homely::Core->instance->config_dir->file($class->moniker.'.json')
     }
     
     sub moniker {
