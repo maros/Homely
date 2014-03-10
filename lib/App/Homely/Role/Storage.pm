@@ -37,13 +37,15 @@ package App::Homely::Role::Storage {
     }
     
     sub load {
-        my ($self,$identifier) = @_;
+        my ($class,$identifier) = @_;
         
-        my $file = $self->storage_filename($identifier);
+        my $file = $class->storage_filename($identifier);
         my $encoded = $file->slurp();
         my $storage = decode_sereal($encoded);
         
-        return bless($storage,ref($self));
+        $class = ref($class) 
+            if blessed $class;
+        return bless($storage,$class);
     }
 }
 

@@ -6,7 +6,7 @@ package App::Homely::State::Weather {
     
     use Moose;
     extends qw(App::Homely::State);
-    with qw(App::Homely::Role::State::Ephermal);
+    with qw(App::Homely::Role::State::Temporary);
     
     use Log::Any qw($log);
     use Weather::Underground;
