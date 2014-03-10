@@ -23,9 +23,20 @@ package App::Homely::Core {
         }
     );
     
+    has 'timezone' => (
+        is              => 'ro',
+        isa             => 'DateTime::TimeZone',
+        lazy_build      => 1,
+    );
+    
     has 'states' => (
         is              => 'rw',
         isa             => 'HashRef[App::Homely::State]',
+        traits          => ['Hash'],
+        handles         => {
+            get_state       => 'get',    
+        },
+        
     );
     
     sub run {
@@ -111,13 +122,12 @@ package App::Homely::Core {
             $states->{$state_class->moniker} = $state_class->get_state();
         }
         
-        
-        use Data::Dumper;
-        {
-          local $Data::Dumper::Maxdepth = 2;
-          warn __FILE__.':line'.__LINE__.':'.Dumper($states);
-        }
         return $states;
+    }
+    
+    sub _build_timezone {
+        my ($self) = @_;
+        return DateTime::TimeZone->new( name => $self->config->get('timezone'));
     }
 }
 
