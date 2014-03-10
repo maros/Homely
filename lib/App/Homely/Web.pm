@@ -67,12 +67,16 @@ package App::Homely::Web {
     }
     
     sub daemon {
-        my $psgi = Mojo::Server::PSGI->new( app => App::Homely::Web->new );
+        my ($class,$config) = @_;
+        $config ||= {};
+        $config->{port} //= 5000;
+        
+        my $psgi = Mojo::Server::PSGI->new( app => $class->new );
         my $app = $psgi->to_psgi_app;
         
         my $server = Twiggy::Server->new(
             #host => 'localhost',
-            port => 5000,
+            port => $config->{port},
         );
         $server->register_service($app);
     }
