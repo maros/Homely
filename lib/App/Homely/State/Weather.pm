@@ -1,7 +1,6 @@
 package App::Homely::State::Weather {
     use 5.016;
     
-    use strict;
     use warnings;
     
     use Moose;
@@ -50,8 +49,12 @@ package App::Homely::State::Weather {
     
     sub BUILD {
         my ($self) = @_;
-        warn "BUILD";
-        my $config              = App::Homely::Core->instance->config;   
+        
+        $log->info('Loading weather for your location');
+        
+        my $core                = App::Homely::Core->instance;
+        my $config              = $core->config;   
+        my $timezone            = $core->timezone;
         my $location            = $config->location;
         my $location_string     = join(', ',$location->{city},$location->{country});
         
@@ -65,27 +68,21 @@ package App::Homely::State::Weather {
             
         my $current = $results->[0];
         
-        use Data::Dumper;
-        {
-          local $Data::Dumper::Maxdepth = 2;
-          warn __FILE__.':line'.__LINE__.':'.Dumper($results);
-        }
-        
         $self->temperature($current->{temperature_celsius});
         $self->wind($current->{wind_kilometersperhour});
         $self->humidity($current->{humidity});
         $self->conditions($current->{conditions});
-        $self->sunset(_parse_time($current->{sunset}));
-        $self->sunrise(_parse_time($current->{sunrise}));
+        $self->sunset(_parse_time($current->{sunset},$timezone));
+        $self->sunrise(_parse_time($current->{sunrise},$timezone));
         
         return $self;
     }
     
     sub _parse_time {
-        my ($string) = @_;
+        my ($string,$timezone) = @_;
         
         if ($string =~ /^(\d+):(\d+)\s(AM|PM)\s\w+$/) {
-            my $now = DateTime->now( time_zone => 'floating' );
+            my $now = DateTime->now( time_zone => $timezone );
             my $time = $now->clone->set( hour => ($3 eq 'PM' ? $1+12:$1), minute => $2 );
             if ($now > $time) {
                 $time->add(days => 1);
