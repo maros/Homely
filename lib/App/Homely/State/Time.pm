@@ -8,5 +8,4 @@ package App::Homely::State::Time {
     
     use Log::Any qw($log);
     
-    sub 
 }

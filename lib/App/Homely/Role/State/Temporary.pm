@@ -3,7 +3,7 @@ package App::Homely::Role::State::Temporary {
     
     use Moose::Role;
     with qw(App::Homely::Role::State::Stored);
-    requires qw(get_state max_state_age);
+    requires qw(max_state_age);
     
     has 'state_age' => (
         is              => 'rw',
