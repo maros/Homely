@@ -7,14 +7,11 @@ package App::Homely::Config {
     use Log::Any qw($log);
     use JSON::XS;
     
-    foreach my $key (qw(web location states utits)) {
-        has $key => (
-            is              => 'rw',
-            isa             => 'HashRef',
-            default         => sub { return {} }
-        );
-        
-    }
+    has 'config' => (
+        is              => 'rw',
+        isa             => 'HashRef',
+        default         => sub { return {} }
+    );
     
     sub load {
         my ($class,$location) = @_;
@@ -31,7 +28,21 @@ package App::Homely::Config {
             ->utf8
             ->decode($slurped);
         
-        return $class->new($config);
+        return $class->new(config => $config);
+    }
+    
+    sub get {
+        my ($self,$path) = @_;
+        
+        my $config = $self->config;
+        foreach my $part (split(/\//,$path)) {
+            return
+                unless ref($config) eq 'HASH';
+            return
+                unless exists $config->{$part};
+            $config = $config->{$part};                
+        }
+        return $config;
     }
 }
 
