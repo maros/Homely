@@ -29,16 +29,6 @@ package App::Homely::Core {
         lazy_build      => 1,
     );
     
-    has 'states' => (
-        is              => 'rw',
-        isa             => 'HashRef[App::Homely::State]',
-        traits          => ['Hash'],
-        handles         => {
-            get_state       => 'get',    
-        },
-        
-    );
-    
     sub run {
         my ($self) = @_;
         
@@ -63,20 +53,23 @@ package App::Homely::Core {
             }
         );
         
-#        # Check loop
-#        my $timer = AnyEvent->timer(
-#            after   => 1, 
-#            interval=> 30, 
-#            cb      => sub {  
-#                $self->check;
-#            }
-#        );
+        # Check loop
+        my $timer = AnyEvent->timer(
+            after   => 1, 
+            interval=> 30, 
+            cb      => sub {  
+                $self->check;
+            }
+        );
         
-        # Register states
+        # Register components
         $self->init_states();
+        $self->init_connectors();
         
         # Start webserver
         App::Homely::Web->daemon();
+        
+        # Init connectors
        
         $log->info('Start event loop');
            
@@ -84,13 +77,6 @@ package App::Homely::Core {
         $cv->recv;
         
         $log->info('Finish event loop');
-    
-        $self->finish();
-    }
-    
-    sub finish {
-        my ($self) = @_;
-        # callback for plugins
     }
     
     sub check {
@@ -107,10 +93,7 @@ package App::Homely::Core {
             search_path => [ 'App::Homely::State' ],
         );
         
-        
-        my $states = {};
         foreach my $state_class ($mpo->plugins) {
-
             my ($ok,$error) = Class::Load::try_load_class($state_class);
             unless ($ok) {
                 $log->error('Could not load '.$state_class.': '.$error);
@@ -119,10 +102,31 @@ package App::Homely::Core {
                 $log->info('Loaded state '.$state_class->moniker);
             }
             
-            $states->{$state_class->moniker} = $state_class->get_state();
+            $state_class->get_state();
         }
+    }
+    
+    sub init_connectors {
+        my ($self) = @_;
         
-        return $states;
+        # Load states
+        my $mpo = Module::Pluggable::Object->new(
+            search_path => [ 'App::Homely::Connector' ],
+            max_depth   => 1,
+        );
+        
+        foreach my $connector_class ($mpo->plugins) {
+
+            my ($ok,$error) = Class::Load::try_load_class($connector_class);
+            unless ($ok) {
+                $log->error('Could not load '.$connector_class.': '.$error);
+                next;
+            } else {
+                $log->info('Loaded state '.$connector_class->moniker);
+            }
+            
+            $connector_class->init();
+        }
     }
     
     sub _build_timezone {
