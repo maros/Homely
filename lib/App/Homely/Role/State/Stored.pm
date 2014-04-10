@@ -1,5 +1,5 @@
 package App::Homely::Role::State::Stored {
-    use 5.016;
+    use 5.014;
     use warnings;
     
     use Moose::Role;

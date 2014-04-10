@@ -1,5 +1,5 @@
 package App::Homely::Web::Base {
-    use 5.016;
+    use 5.014;
     use warnings;
     
     use Mojo::Base 'Mojolicious::Controller';

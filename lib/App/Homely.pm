@@ -1,5 +1,5 @@
 package App::Homely {
-    use 5.016; 
+    use 5.014; 
     
     our $AUTHORITY = 'cpan:MAROS';
     our $VERSION = '1.00';

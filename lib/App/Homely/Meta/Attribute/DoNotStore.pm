@@ -1,5 +1,5 @@
 package Homely::Meta::Attribute::DoNotStore {
-    use 5.016;
+    use 5.014;
     use warnings;
     
     use Moose::Role;

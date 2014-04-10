@@ -1,5 +1,5 @@
 package App::Homely::Role::State::Temporary {
-    use 5.016;
+    use 5.014;
     
     use Moose::Role;
     with qw(App::Homely::Role::State::Stored);
