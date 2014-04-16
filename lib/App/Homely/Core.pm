@@ -52,6 +52,14 @@ package App::Homely::Core {
                 $cv->send;
             }
         );
+#        my $die_signal = AnyEvent->signal(
+#            signal  => "__DIE__", 
+#            cb      => sub { 
+#                $log->error('Recieved DIE signal');
+#                $cv->send;
+#            }
+#        );
+        
         
         # Check loop
         my $timer = AnyEvent->timer(
@@ -94,15 +102,15 @@ package App::Homely::Core {
         );
         
         foreach my $state_class ($mpo->plugins) {
+            $log->debug('Try to load state '.$state_class);
             my ($ok,$error) = Class::Load::try_load_class($state_class);
             unless ($ok) {
-                $log->error('Could not load '.$state_class.': '.$error);
+                $log->error('Could not load state '.$state_class.': '.$error);
                 next;
             } else {
                 $log->info('Loaded state '.$state_class->moniker);
+                $state_class->get_state();
             }
-            
-            $state_class->get_state();
         }
     }
     
@@ -116,16 +124,15 @@ package App::Homely::Core {
         );
         
         foreach my $connector_class ($mpo->plugins) {
-
+            $log->debug('Try to load connector '.$connector_class);
             my ($ok,$error) = Class::Load::try_load_class($connector_class);
             unless ($ok) {
-                $log->error('Could not load '.$connector_class.': '.$error);
+                $log->error('Could not load connector '.$connector_class.': '.$error);
                 next;
             } else {
-                $log->info('Loaded state '.$connector_class->moniker);
+                $log->info('Loaded connector '.$connector_class->moniker);
+                $connector_class->init();
             }
-            
-            $connector_class->init();
         }
     }
     
