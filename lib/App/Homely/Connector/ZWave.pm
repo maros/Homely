@@ -5,6 +5,9 @@ use strict;
 use warnings;
 use utf8;
 
+use Moose;
+extends qw(App::Homely::Connector);
+
 use Inline 'C' 
     => Config 
     => LIBS => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive'
@@ -21,7 +24,8 @@ sub init {
 }
 
 sub DEMOLISH {
-    _finish_zway(); 
+    my ($self) = @_;
+    myzway_finish(); 
 }
 
 sub add_callback {
@@ -33,25 +37,24 @@ sub add_callback {
             $log->debug('Got callback from DeviceId='.$device.',InstanceId='.$instance.'CommandClass='.$command);
             $callback->($device,$instance,$command,@_);
         });
-        _add_callback($device,$instance,$command);
     }
-    _add_callback($device,$instance,$command);
+    myzway_add_callback($device,$instance,$command);
 }
 
-sub _callback {
+sub do_callback {
     my ($path) = @_;
     my $self = __PACKAGE__->instance;
     $log->debug('Got callback from '.$path);
 }
 
-sub _log {
+sub do_log {
     my ($loglevel,$message) = @_;
     $log->$loglevel($message);
 }
 
 1;
 
-__END__
+__DATA__
 __C__
 
 #include <errno.h>
@@ -69,7 +72,7 @@ char* concat(char *s1, char *s2) {
     return result;
 }
 
-void _log(char* loglevel, char* message) {
+void myzway(char* loglevel, char* message) {
     ENTER;
     SAVETMPS;
 
@@ -77,13 +80,13 @@ void _log(char* loglevel, char* message) {
     XPUSHs(sv_2mortal(newSVpvf(message)));
     PUTBACK;
 
-    call_pv("_log", G_DISCARD);
+    call_pv("do_log", G_DISCARD);
 
     FREETMPS;
     LEAVE;
 }
 
-int _init_zway(int LogLevel) {
+int myzway_init(int LogLevel) {
     if (aZWay != NULL) {
         ZWError result;
         memset(&aZWay, 0, sizeof(aZWay));
@@ -98,24 +101,24 @@ int _init_zway(int LogLevel) {
             result = zway_start(aZWay,NULL);
         }
         if (result == NoError) {
-            char errormessage[100];
+            char errormessage[60];
             sprintf(errormessage,"Could not initialize zway %d",result);
-            _log('error',errormessage);
+            myzway_log('error',errormessage);
             return 0;
         }
     }
     return 1;
 }
 
-int _finish_zway() {
+int myzway_finish() {
     ZWError result;
     int success = 1;
     if (aZWay != NULL) {
         result = zway_stop(aZWay);
         if (result != NoError) {
-            char errormessage[100];
+            char errormessage[60];
             sprintf(errormessage,"Could not finish zway %d",result);
-            _log('error',errormessage);
+            myzway_log('error',errormessage);
             success = 0;
         }
         zway_terminate(&aZWay);
@@ -123,22 +126,7 @@ int _finish_zway() {
     return success;
 }
 
-int _add_callback(int DeviceId, int InstanceId, int CommandClass) {
-    zway_data_acquire_lock(aZWay);
-    ZDataHolder dataHolder = zway_find_device_instance_cc_data(aZWay, DeviceId, InstanceId, CommandClass, "");
-    if (dataHolder != NULL) {
-        zway_data_add_callback_ex(aZWay, dataHolder, &_dataChangeCallback, 1, "");
-    } else {
-        char errormessage[150];
-        sprintf("No data holder for deviceId=%i,instanceId=%i,CommandClass=%i",DeviceId,InstanceId,CommandClass);
-        _log('error',errormessage);
-        return 0;
-    }
-    zway_data_release_lock(aZWay);
-    return 1;
-}
-
-void _dataChangeCallback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
+void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
     char *path = zway_data_get_path(aZWay,aData);
     
     ENTER;
@@ -147,9 +135,25 @@ void _dataChangeCallback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, 
     XPUSHs(sv_2mortal(newSVpvf(path)));
     PUTBACK;
 
-    call_pv("_callback", G_DISCARD);
+    call_pv("do_callback", G_DISCARD);
 
     FREETMPS;
     LEAVE;
-*/
 }
+
+int myzway_add_callback(int DeviceId, int InstanceId, int CommandClass) {
+    zway_data_acquire_lock(aZWay);
+    ZDataHolder dataHolder = zway_find_device_instance_cc_data(aZWay, DeviceId, InstanceId, CommandClass, "");
+    if (dataHolder != NULL) {
+        zway_data_add_callback_ex(aZWay, dataHolder, &myzway_callback, 1, "");
+    } else {
+        char errormessage[80];
+        sprintf(errormessage,"No data holder for deviceId=%i,instanceId=%i,CommandClass=%i",DeviceId,InstanceId,CommandClass);
+        myzway_log('error',errormessage);
+        return 0;
+    }
+    zway_data_release_lock(aZWay);
+    return 1;
+}
+
+
