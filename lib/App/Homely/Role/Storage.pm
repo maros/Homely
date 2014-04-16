@@ -5,10 +5,16 @@ package App::Homely::Role::Storage {
     
     use namespace::autoclean;
     use Moose::Role;
+    use MooseX::Storage;
+    with Storage('format' => 'JSON');
     requires qw(moniker);
     
-    use Sereal::Encoder qw(encode_sereal);
-    use Sereal::Decoder qw(decode_sereal);
+    MooseX::Storage::Engine->add_custom_type_handler(
+        'DateTime' => (
+            expand   => sub { DateTime->from_epoch( epoch => shift, time_zone => App::Homely::Core->instance->timezone ) },
+            collapse => sub { (shift)->epoch }, 
+        )
+    );
     
     sub storage_filename {
         my ($self,$identifier) = @_;
@@ -23,29 +29,18 @@ package App::Homely::Role::Storage {
     
     sub store {
         my ($self,$identifier) = @_;
-        
-        my %storage;
-        foreach my $attribute ($self->meta->get_all_attributes) {
-            next
-                if $attribute->does('Homely::Meta::Attribute::DoNotStore');
-            $storage{$attribute->name} = $attribute->get_raw_value($self);
-        }
-        
-        my $encoded = encode_sereal(\%storage);
         my $file = $self->storage_filename($identifier);
-        $file->spew($encoded);
+        $file->spew($self->freeze);
     }
     
     sub load {
         my ($class,$identifier) = @_;
         
-        my $file = $class->storage_filename($identifier);
-        my $encoded = $file->slurp();
-        my $storage = decode_sereal($encoded);
-        
         $class = ref($class) 
             if blessed $class;
-        return bless($storage,$class);
+
+        my $file = $class->storage_filename($identifier);
+        return $class->thaw(  $file->slurp() );      
     }
 }
 
