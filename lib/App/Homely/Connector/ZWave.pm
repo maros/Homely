@@ -64,6 +64,7 @@ __C__
 
 ZWay aZWay;
 
+
 char* concat(char *s1, char *s2) {
     char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
     //in real code you would check for errors in malloc here
@@ -72,7 +73,9 @@ char* concat(char *s1, char *s2) {
     return result;
 }
 
-void myzway(char* loglevel, char* message) {
+void myzway_log(char* loglevel, char* message) {
+    dSP;
+    
     ENTER;
     SAVETMPS;
 
@@ -81,6 +84,23 @@ void myzway(char* loglevel, char* message) {
     PUTBACK;
 
     call_pv("do_log", G_DISCARD);
+
+    FREETMPS;
+    LEAVE;
+}
+
+void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
+    char* path = zway_data_get_path(aZWay,aData);
+    
+    dSP;
+    
+    ENTER;
+    SAVETMPS;
+
+    XPUSHs(sv_2mortal(newSVpvf(path)));
+    PUTBACK;
+
+    call_pv("do_callback", G_DISCARD);
 
     FREETMPS;
     LEAVE;
@@ -101,7 +121,7 @@ int myzway_init(int LogLevel) {
             result = zway_start(aZWay,NULL);
         }
         if (result == NoError) {
-            char errormessage[60];
+            char errormessage[100];
             sprintf(errormessage,"Could not initialize zway %d",result);
             myzway_log('error',errormessage);
             return 0;
@@ -116,7 +136,7 @@ int myzway_finish() {
     if (aZWay != NULL) {
         result = zway_stop(aZWay);
         if (result != NoError) {
-            char errormessage[60];
+            char errormessage[100];
             sprintf(errormessage,"Could not finish zway %d",result);
             myzway_log('error',errormessage);
             success = 0;
@@ -126,28 +146,13 @@ int myzway_finish() {
     return success;
 }
 
-void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
-    char *path = zway_data_get_path(aZWay,aData);
-    
-    ENTER;
-    SAVETMPS;
-
-    XPUSHs(sv_2mortal(newSVpvf(path)));
-    PUTBACK;
-
-    call_pv("do_callback", G_DISCARD);
-
-    FREETMPS;
-    LEAVE;
-}
-
 int myzway_add_callback(int DeviceId, int InstanceId, int CommandClass) {
     zway_data_acquire_lock(aZWay);
     ZDataHolder dataHolder = zway_find_device_instance_cc_data(aZWay, DeviceId, InstanceId, CommandClass, "");
     if (dataHolder != NULL) {
         zway_data_add_callback_ex(aZWay, dataHolder, &myzway_callback, 1, "");
     } else {
-        char errormessage[80];
+        char errormessage[100];
         sprintf(errormessage,"No data holder for deviceId=%i,instanceId=%i,CommandClass=%i",DeviceId,InstanceId,CommandClass);
         myzway_log('error',errormessage);
         return 0;
