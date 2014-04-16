@@ -17,7 +17,7 @@ my $stash = Package::Stash->new(__PACKAGE__);
 sub init {
     my ($self) = @_;
     my $core = App::Homely::Core->instance;
-    _init_zway($core->debug ? 0:3); 
+    myzway_init($core->debug ? 0:3); 
 }
 
 sub DEMOLISH {

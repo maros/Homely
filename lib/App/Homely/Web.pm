@@ -18,6 +18,8 @@ package App::Homely::Web {
         
         $log->info('Initialize web-server');
         
+        my $core = App::Homely::Core->instance;
+        
         # Setup logging
         #$self->log($log);
         
@@ -33,7 +35,7 @@ package App::Homely::Web {
         });
  
         # Set secret
-        $self->secrets(['HASE']); # TODO change
+        $self->secrets([$core->config->get('web/secret')]); 
         
         # Setup routes
         my $r = $self->routes;
@@ -63,7 +65,6 @@ package App::Homely::Web {
             ->via('GET')
             ->over(authenticated => 1)
             ->to(controller => 'base', action => 'dashboard');
-        
     }
     
     sub daemon {

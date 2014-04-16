@@ -131,7 +131,7 @@ package App::Homely::Core {
     
     sub _build_timezone {
         my ($self) = @_;
-        return DateTime::TimeZone->new( name => $self->config->get('timezone'));
+        return DateTime::TimeZone->new( name => $self->config->get('location/timezone'));
     }
 }
 

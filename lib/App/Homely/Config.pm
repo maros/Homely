@@ -36,12 +36,18 @@ package App::Homely::Config {
         
         my $config = $self->config;
         foreach my $part (split(/\//,$path)) {
-            return
-                unless ref($config) eq 'HASH';
-            return
-                unless exists $config->{$part};
+            unless (ref($config) eq 'HASH' 
+                && exists $config->{$part}) {
+                $log->error('Could not find config key '.$path);
+                return;
+            }
             $config = $config->{$part};                
         }
+        if (ref($config) eq 'HASH') {
+            $log->error('Could not find config key '.$path);
+            return;
+        }
+        
         return $config;
     }
 }

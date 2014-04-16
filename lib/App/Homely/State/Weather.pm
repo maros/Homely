@@ -52,11 +52,12 @@ package App::Homely::State::Weather {
         
         $log->info('Loading weather for your location');
         
-        my $core                = App::Homely::Core->instance;
-        my $config              = $core->config;   
-        my $timezone            = $core->timezone;
-        my $location            = $config->location;
-        my $location_string     = join(', ',$location->{city},$location->{country});
+        my $core            = App::Homely::Core->instance;
+        my $config          = $core->config;   
+        my $timezone        = $core->timezone;
+        my $city            = $config->get('location/city');
+        my $country         = $config->get('location/country');
+        my $location_string = join(', ',$city,$country);
         
         my $weather = Weather::Underground->new(
             place       => $location_string,
