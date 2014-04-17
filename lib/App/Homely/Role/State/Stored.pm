@@ -5,7 +5,7 @@ package App::Homely::Role::State::Stored {
     use Moose::Role;
     with qw(App::Homely::Role::Storage);
     
-    sub get_state {
+    sub init {
         my ($class) = @_;
         if (blessed $class) {
             return $class;

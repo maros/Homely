@@ -13,7 +13,7 @@ package App::Homely::Role::State::Temporary {
         #default         => sub { DateTime->now( time_zone => 'floating' ) },
     );
     
-    around 'get_state' =>sub {
+    around 'init' =>sub {
         my $orig = shift;
         my $self = shift;
         

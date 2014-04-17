@@ -8,6 +8,9 @@ package App::Homely::Core {
     use App::Homely::Config;
     use App::Homely::Logger;
     use App::Homely::Web;
+    use App::Homely::Connector;
+    use App::Homely::State;
+    
     
     use DateTime;
     use AnyEvent;
@@ -60,7 +63,6 @@ package App::Homely::Core {
 #            }
 #        );
         
-        
         # Check loop
         my $timer = AnyEvent->timer(
             after   => 1, 
@@ -71,8 +73,8 @@ package App::Homely::Core {
         );
         
         # Register components
-        $self->init_states();
-        $self->init_connectors();
+        App::Homely::Connector->init_components();
+        App::Homely::State->init_components();
         
         # Start webserver
         App::Homely::Web->daemon();
@@ -91,49 +93,6 @@ package App::Homely::Core {
         my ($self) = @_;
         # callback for plugins
         say('CHECK');
-    }
-    
-    sub init_states {
-        my ($self) = @_;
-        
-        # Load states
-        my $mpo = Module::Pluggable::Object->new(
-            search_path => [ 'App::Homely::State' ],
-        );
-        
-        foreach my $state_class ($mpo->plugins) {
-            $log->debug('Try to load state '.$state_class);
-            my ($ok,$error) = Class::Load::try_load_class($state_class);
-            unless ($ok) {
-                $log->error('Could not load state '.$state_class.': '.$error);
-                next;
-            } else {
-                $log->info('Loaded state '.$state_class->moniker);
-                $state_class->get_state();
-            }
-        }
-    }
-    
-    sub init_connectors {
-        my ($self) = @_;
-        
-        # Load states
-        my $mpo = Module::Pluggable::Object->new(
-            search_path => [ 'App::Homely::Connector' ],
-            max_depth   => 1,
-        );
-        
-        foreach my $connector_class ($mpo->plugins) {
-            $log->debug('Try to load connector '.$connector_class);
-            my ($ok,$error) = Class::Load::try_load_class($connector_class);
-            unless ($ok) {
-                $log->error('Could not load connector '.$connector_class.': '.$error);
-                next;
-            } else {
-                $log->info('Loaded connector '.$connector_class->moniker);
-                $connector_class->init();
-            }
-        }
     }
     
     sub _build_timezone {

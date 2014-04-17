@@ -3,7 +3,7 @@ package App::Homely::Role::State::Ephermal {
     
     use Moose::Role;
     
-    sub get_state {
+    sub init {
         my ($class) = @_;
         return $class->new();
     }
