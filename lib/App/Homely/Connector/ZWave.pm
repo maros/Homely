@@ -8,21 +8,25 @@ use utf8;
 use Moose;
 extends qw(App::Homely::Connector);
 
-use Inline 'C' 
-    => Config 
-    => LIBS => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive'
-    => INC  => '-I/opt/z-way-server/libzway-dev'
-    => AUTO_INCLUDE => '#include "ZWayLib.h"';
+use Inline 
+    C               => 'Config', 
+    LIBS            => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive',
+    INC             => '-I/opt/z-way-server/libzway-dev',
+    AUTO_INCLUDE    => '#include "ZWayLib.h"';
     
-use Inline 'C';
+use Inline 
+    C       => 'DATA',
+    NAME    => __PACKAGE__;
+
 use Log::Any qw($log);
 
+Inline->init();
 my $stash = Package::Stash->new(__PACKAGE__);
 
 sub init {
     my ($self) = @_;
     my $core = App::Homely::Core->instance;
-    myzway_init($core->debug ? 0:3); 
+    warn myzway_init($core->debug ? 0:3); 
 }
 
 sub DEMOLISH {
@@ -57,7 +61,7 @@ sub do_callback {
 
 sub do_log {
     my ($loglevel,$message) = @_;
-    $log->$loglevel($message);
+    $log->$loglevel('LOG'.$message);
 }
 
 1;
