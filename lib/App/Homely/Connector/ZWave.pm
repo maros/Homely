@@ -11,7 +11,9 @@ extends qw(App::Homely::Connector);
 use Inline 'C' 
     => Config 
     => LIBS => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive'
-    => INC  => '-I/opt/z-way-server/libzway-dev';
+    => INC  => '-I/opt/z-way-server/libzway-dev'
+    => AUTO_INCLUDE => '#include "ZWayLib.h"';
+    
 use Inline 'C';
 use Log::Any qw($log);
 
@@ -30,6 +32,12 @@ sub DEMOLISH {
 
 sub add_callback {
     my ($self,$device,$instance,$command,$callback) = @_;
+    
+    die('Device, instance, command or callback missing')
+        unless defined $device
+        && defined $instance
+        && defined $command
+        && defined $callback;
     
     my $symbol = '&callback_'.$device.'_'.$instance.'_'.$command;
     unless ($stash->has_symbol($symbol)) {
@@ -57,14 +65,9 @@ sub do_log {
 __DATA__
 __C__
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ZWayLib.h>
-
 ZWay aZWay;
 
-
+/*
 char* concat(char *s1, char *s2) {
     char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
     //in real code you would check for errors in malloc here
@@ -72,6 +75,7 @@ char* concat(char *s1, char *s2) {
     strcat(result, s2);
     return result;
 }
+*/
 
 void myzway_log(char* loglevel, char* message) {
     dSP;
