@@ -31,7 +31,7 @@ sub init_components {
     
     my %loaded;
     foreach my $component_class ($mpo->plugins) {
-        $log->debug('Try to component '.$component_class);
+        $log->debug('Try to load component '.$component_class);
         my ($ok,$error) = Class::Load::try_load_class($component_class);
         unless ($ok) {
             $log->error('Could not load component '.$component_class.': '.$error);
