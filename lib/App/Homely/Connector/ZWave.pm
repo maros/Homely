@@ -41,7 +41,8 @@ sub add_callback {
         unless defined $device
         && defined $instance
         && defined $command
-        && defined $callback;
+        && defined $callback
+        && ref($callback) eq 'CODE';
     
     my $symbol = '&callback_'.$device.'_'.$instance.'_'.$command;
     unless ($stash->has_symbol($symbol)) {
@@ -71,33 +72,26 @@ __C__
 
 ZWay aZWay;
 
-/*
-char* concat(char *s1, char *s2) {
-    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
-}
-*/
-
-void myzway_log(char* loglevel, char* message) {
+static void myzway_log(char *loglevel, char *message) {
     dSP;
     
     ENTER;
     SAVETMPS;
 
-    XPUSHs(sv_2mortal(newSVpvf(loglevel)));
-    XPUSHs(sv_2mortal(newSVpvf(message)));
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVpv(loglevel)));
+    XPUSHs(sv_2mortal(newSVpv(message)));
     PUTBACK;
 
     call_pv("do_log", G_DISCARD);
 
     FREETMPS;
     LEAVE;
+    
+    SPAGAIN;
 }
 
-void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
+static void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
     char* path = zway_data_get_path(aZWay,aData);
     
     dSP;
@@ -105,13 +99,16 @@ void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void
     ENTER;
     SAVETMPS;
 
-    XPUSHs(sv_2mortal(newSVpvf(path)));
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVpv(path)));
     PUTBACK;
 
     call_pv("do_callback", G_DISCARD);
 
     FREETMPS;
     LEAVE;
+    
+    SPAGAIN;
 }
 
 int myzway_init(int LogLevel) {
