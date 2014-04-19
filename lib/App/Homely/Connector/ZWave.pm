@@ -111,8 +111,8 @@ static void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aDat
     SPAGAIN;
 }
 
-int myzway_init(int LogLevel) {
-    if (aZWay != NULL) {
+int myzway_init(int loglevel) {
+    if (aZWay == NULL) {
         ZWError result;
         memset(&aZWay, 0, sizeof(aZWay));
         result = zway_init(&aZWay, "/dev/ttyAMA0",
@@ -120,12 +120,15 @@ int myzway_init(int LogLevel) {
             "/opt/z-way-server/translations",
             "/opt/z-way-server/ZDDX", 
             stdout, 
-            LogLevel
+            loglevel
         );
         if (result == NoError) {
             result = zway_start(aZWay,NULL);
         }
         if (result == NoError) {
+            result = zway_discover(aZWay);
+        }
+        if (result != NoError) {
             char errormessage[100];
             sprintf(errormessage,"Could not initialize zway %d",result);
             myzway_log('error',errormessage);
