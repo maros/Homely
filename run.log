@@ -1,0 +1,185 @@
+c99 -I/opt/z-way-server/libzway-dev -L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive -o test.out test.c
+export LD_LIBRARY_PATH=/opt/z-way-server/libs && ./test.out
+Init zway with size 4
+Init...
+[2014-04-27 21:10:15.401] SETDATA controller.data = Empty
+[2014-04-27 21:10:15.402] SETDATA controller.data.nodeId = Empty
+[2014-04-27 21:10:15.402] SETDATA controller.data.homeId = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.SUCNodeId = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.isPrimary = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.isInOthersNetwork = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.isRealPrimary = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.isSUC = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.SISPresent = Empty
+[2014-04-27 21:10:15.403] SETDATA controller.data.libType = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.SDK = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.ZWlibMajor = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.ZWlibMinor = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.ZWVersion = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.ZWaveChip = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.APIVersion = Empty
+[2014-04-27 21:10:15.404] SETDATA controller.data.manufacturerId = Empty
+[2014-04-27 21:10:15.405] SETDATA controller.data.vendor = Empty
+[2014-04-27 21:10:15.405] SETDATA controller.data.manufacturerProductType = Empty
+[2014-04-27 21:10:15.405] SETDATA controller.data.manufacturerProductId = Empty
+[2014-04-27 21:10:15.405] SETDATA controller.data.capabilities = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.controllerState = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.nonManagmentJobs = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.lastIncludedDevice = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.lastExcludedDevice = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.oldSerialAPIAckTimeout10ms = Empty
+[2014-04-27 21:10:15.406] SETDATA controller.data.oldSerialAPIByteTimeout10ms = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.curSerialAPIAckTimeout10ms = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.curSerialAPIByteTimeout10ms = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.libVersionId = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.countJobs = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.memoryGetAddress = Empty
+[2014-04-27 21:10:15.407] SETDATA controller.data.memoryGetData = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.functionClasses = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.functionClassesNames = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.softwareRevisionVersion = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.softwareRevisionId = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.softwareRevisionDate = Empty
+[2014-04-27 21:10:15.408] SETDATA controller.data.nodeId = 0 (0x00000000)
+[2014-04-27 21:10:15.409] SETDATA controller.data.homeId = 0 (0x00000000)
+[2014-04-27 21:10:15.409] SETDATA controller.data.SUCNodeId = 0 (0x00000000)
+[2014-04-27 21:10:15.409] SETDATA controller.data.isPrimary = False
+[2014-04-27 21:10:15.409] SETDATA controller.data.isInOthersNetwork = False
+[2014-04-27 21:10:15.409] SETDATA controller.data.isRealPrimary = False
+[2014-04-27 21:10:15.409] SETDATA controller.data.isSUC = False
+[2014-04-27 21:10:15.409] SETDATA controller.data.SISPresent = False
+[2014-04-27 21:10:15.410] SETDATA controller.data.libType = 0 (0x00000000)
+[2014-04-27 21:10:15.410] SETDATA controller.data.ZWlibMajor = 0 (0x00000000)
+[2014-04-27 21:10:15.410] SETDATA controller.data.ZWlibMinor = 0 (0x00000000)
+[2014-04-27 21:10:15.410] SETDATA controller.data.ZWVersion = 0 (0x00000000)
+[2014-04-27 21:10:15.410] SETDATA controller.data.manufacturerId = 0 (0x00000000)
+[2014-04-27 21:10:15.410] SETDATA controller.data.manufacturerProductType = 0 (0x00000000)
+[2014-04-27 21:10:15.411] SETDATA controller.data.manufacturerProductId = 0 (0x00000000)
+[2014-04-27 21:10:15.411] SETDATA controller.data.controllerState = 0 (0x00000000)
+[2014-04-27 21:10:15.411] SETDATA controller.data.nonManagmentJobs = 0 (0x00000000)
+[2014-04-27 21:10:15.411] SETDATA controller.data.oldSerialAPIAckTimeout10ms = 0 (0x00000000)
+[2014-04-27 21:10:15.411] SETDATA controller.data.oldSerialAPIByteTimeout10ms = 0 (0x00000000)
+[2014-04-27 21:10:15.412] SETDATA controller.data.curSerialAPIAckTimeout10ms = 0 (0x00000000)
+[2014-04-27 21:10:15.412] SETDATA controller.data.curSerialAPIByteTimeout10ms = 0 (0x00000000)
+[2014-04-27 21:10:15.412] SETDATA controller.data.libVersionId = 1 (0x00000001)
+[2014-04-27 21:10:15.412] SETDATA controller.data.countJobs = False
+[2014-04-27 21:10:15.412] SETDATA controller.data.softwareRevisionVersion = "v1.5.0-rc1-1-ga232aeb"
+[2014-04-27 21:10:15.412] SETDATA controller.data.softwareRevisionId = "a232aebd0bd5f8f15345f8f1c95706a263a25f02"
+[2014-04-27 21:10:15.413] SETDATA controller.data.softwareRevisionDate = "2014-02-13 03:13:44 +0400"
+[2014-04-27 21:10:15.413] SETDATA controller.data.functionClasses = int[43]
+[2014-04-27 21:10:15.414]   [00] 2
+[2014-04-27 21:10:15.414]   [01] 3
+[2014-04-27 21:10:15.414]   [02] 4
+[2014-04-27 21:10:15.414]   [03] 5
+[2014-04-27 21:10:15.414]   [04] 6
+[2014-04-27 21:10:15.414]   [05] 7
+[2014-04-27 21:10:15.414]   [06] 8
+[2014-04-27 21:10:15.414]   [07] 18
+[2014-04-27 21:10:15.415]   [08] 19
+[2014-04-27 21:10:15.415]   [09] 21
+[2014-04-27 21:10:15.415]   [10] 22
+[2014-04-27 21:10:15.415]   [11] 32
+[2014-04-27 21:10:15.416]   [12] 33
+[2014-04-27 21:10:15.416]   [13] 34
+[2014-04-27 21:10:15.416]   [14] 35
+[2014-04-27 21:10:15.416]   [15] 36
+[2014-04-27 21:10:15.416]   [16] 65
+[2014-04-27 21:10:15.416]   [17] 66
+[2014-04-27 21:10:15.416]   [18] 70
+[2014-04-27 21:10:15.416]   [19] 71
+[2014-04-27 21:10:15.416]   [20] 72
+[2014-04-27 21:10:15.417]   [21] 73
+[2014-04-27 21:10:15.417]   [22] 74
+[2014-04-27 21:10:15.417]   [23] 75
+[2014-04-27 21:10:15.417]   [24] 76
+[2014-04-27 21:10:15.417]   [25] 77
+[2014-04-27 21:10:15.417]   [26] 80
+[2014-04-27 21:10:15.417]   [27] 81
+[2014-04-27 21:10:15.417]   [28] 82
+[2014-04-27 21:10:15.417]   [29] 83
+[2014-04-27 21:10:15.418]   [30] 84
+[2014-04-27 21:10:15.418]   [31] 85
+[2014-04-27 21:10:15.418]   [32] 86
+[2014-04-27 21:10:15.418]   [33] 87
+[2014-04-27 21:10:15.418]   [34] 96
+[2014-04-27 21:10:15.418]   [35] 97
+[2014-04-27 21:10:15.418]   [36] 98
+[2014-04-27 21:10:15.418]   [37] 99
+[2014-04-27 21:10:15.419]   [38] 128
+[2014-04-27 21:10:15.419]   [39] 210
+[2014-04-27 21:10:15.419]   [40] 211
+[2014-04-27 21:10:15.419]   [41] 242
+[2014-04-27 21:10:15.419]   [42] 243
+[2014-04-27 21:10:15.419] SETDATA controller.data.functionClassesNames = string[43]
+[2014-04-27 21:10:15.420]   [00] "SerialAPIGetInitData"
+[2014-04-27 21:10:15.420]   [01] "SerialAPIApplicationNodeInformation"
+[2014-04-27 21:10:15.420]   [02] "ApplicationCommandHandler"
+[2014-04-27 21:10:15.420]   [03] "GetControllerCapabilities"
+[2014-04-27 21:10:15.420]   [04] "SerialAPISetTimeouts"
+[2014-04-27 21:10:15.420]   [05] "GetSerialAPICapabilities"
+[2014-04-27 21:10:15.420]   [06] "SerialAPISoftReset"
+[2014-04-27 21:10:15.421]   [07] "SendNodeInformation"
+[2014-04-27 21:10:15.421]   [08] "SendData"
+[2014-04-27 21:10:15.421]   [09] "GetVersion"
+[2014-04-27 21:10:15.421]   [10] "SendDataAbort"
+[2014-04-27 21:10:15.421]   [11] "GetHomeId"
+[2014-04-27 21:10:15.421]   [12] "MemoryGetByte"
+[2014-04-27 21:10:15.421]   [13] "MemoryPutByte"
+[2014-04-27 21:10:15.421]   [14] "MemoryGetBuffer"
+[2014-04-27 21:10:15.422]   [15] "MemoryPutBuffer"
+[2014-04-27 21:10:15.422]   [16] "GetNodeProtocolInformation"
+[2014-04-27 21:10:15.422]   [17] "SetDefault"
+[2014-04-27 21:10:15.422]   [18] "AssignReturnRoute"
+[2014-04-27 21:10:15.422]   [19] "DeleteReturnRoute"
+[2014-04-27 21:10:15.422]   [20] "RequestNodeNeighbourUpdate"
+[2014-04-27 21:10:15.422]   [21] "ApplicationNodeUpdate"
+[2014-04-27 21:10:15.423]   [22] "AddNodeToNetwork"
+[2014-04-27 21:10:15.423]   [23] "RemoveNodeFromNetwork"
+[2014-04-27 21:10:15.423]   [24] "CreateNewPrimary"
+[2014-04-27 21:10:15.423]   [25] "ControllerChange"
+[2014-04-27 21:10:15.423]   [26] "SetLearnMode"
+[2014-04-27 21:10:15.423]   [27] "AssignSUCReturnRoute"
+[2014-04-27 21:10:15.424]   [28] "EnableSUC"
+[2014-04-27 21:10:15.424]   [29] "RequestNetworkUpdate"
+[2014-04-27 21:10:15.424]   [30] "SetSUCNodeId"
+[2014-04-27 21:10:15.424]   [31] "DeleteSUCReturnRoute"
+[2014-04-27 21:10:15.424]   [32] "GetSUCNodeId"
+[2014-04-27 21:10:15.424]   [33] "SendSUCNodeId"
+[2014-04-27 21:10:15.425]   [34] "RequestNodeInformation"
+[2014-04-27 21:10:15.425]   [35] "RemoveFailedNode"
+[2014-04-27 21:10:15.425]   [36] "IsFailedNode"
+[2014-04-27 21:10:15.425]   [37] "ReplaceFailedNode"
+[2014-04-27 21:10:15.425]   [38] "GetRoutingTableLine"
+[2014-04-27 21:10:15.425]   [39] "WatchDogStart"
+[2014-04-27 21:10:15.426]   [40] "WatchDogStop"
+[2014-04-27 21:10:15.426]   [41] "ZMEFreqChange"
+[2014-04-27 21:10:15.426]   [42] "ZMERestore"
+Adding device events...
+Starting...
+[2014-04-27 21:10:15.426] Opened device: /dev/ttyAMA0
+[2014-04-27 21:10:15.427] Worker thread successfully created
+Discovering...
+[2014-04-27 21:10:15.429] Worker thread entry point
+[2014-04-27 21:10:15.439] Adding job: Get controller info and supported function classes
+[2014-04-27 21:10:15.443] SENDING (cb 0x07): ( 01 03 00 07 FB )
+[2014-04-27 21:10:15.453] Received SOF, while awaiting ACK
+[2014-04-27 21:10:15.454] RECEIVED: ( 01 2B 01 07 04 02 01 47 00 02 00 03 FE 00 16 80 0C 00 00 00 E3 97 7D 80 07 00 00 80 00 00 00 00 00 00 00 00 00 00 02 00 00 80 07 00 7C )
+[2014-04-27 21:10:15.454] SENT ACK
+[2014-04-27 21:10:15.454] Received response, but there's no matching request (funcId = 0x07)
+[2014-04-27 21:10:15.466] SENDING (cb 0x07): ( 01 03 00 07 FB )
+[2014-04-27 21:10:15.476] Received SOF, while awaiting ACK
+[2014-04-27 21:10:15.476] RECEIVED: ( 01 2B 01 07 04 02 01 47 00 02 00 03 FE 00 16 80 0C 00 00 00 E3 97 7D 80 07 00 00 80 00 00 00 00 00 00 00 00 00 00 02 00 00 80 07 00 7C )
+[2014-04-27 21:10:15.477] SENT ACK
+[2014-04-27 21:10:15.477] Received response, but there's no matching request (funcId = 0x07)
+[2014-04-27 21:10:15.489] SENDING (cb 0x07): ( 01 03 00 07 FB )
+[2014-04-27 21:10:15.499] RECEIVED ACK
+[2014-04-27 21:10:34.366] Job 0x07 (Get controller info and supported function classes): No RESPONSE received before timeout
+[2014-04-27 21:10:34.366] Job 0x07 (Get controller info and supported function classes) dropped: too many resends
+[2014-04-27 21:10:34.366] Job 0x07 (Get controller info and supported function classes): fail
+[2014-04-27 21:10:34.366] Get Serial API Capabilities returned zero.
+[2014-04-27 21:10:34.367] Removing job: Get controller info and supported function classes
+[2014-04-27 21:10:34.377] Worker thread exit point
+Z-Way terminated
+[2014-04-27 21:10:34.377] Worker thread successfully finished
+Error: -9
+[2014-04-27 21:10:34.378] SaveData will not save data since it wasn't loaded. This is to prevent data loss.
