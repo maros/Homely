@@ -26,7 +26,8 @@ my $stash = Package::Stash->new(__PACKAGE__);
 sub init {
     my ($self) = @_;
     my $core = App::Homely::Core->instance;
-    warn myzway_init($core->debug ? 0:3); 
+    myzway_init(0);
+    warn myzway_init($core->debug ? 0:3);
 }
 
 sub DEMOLISH {
@@ -70,29 +71,36 @@ sub do_log {
 __DATA__
 __C__
 
-ZWay aZWay;
+ZWay zway;
 
-static void myzway_log(char *loglevel, char *message) {
+static void myzway_log(char *loglevel, char *format ...) {
+    va_list argptr;
+    char *buffer;
+    
+    va_start(argptr,loglevel);
+    ret = vsprintf(buffer, format, aptr);
+    va_end(argptr);
+    
     dSP;
     
     ENTER;
     SAVETMPS;
 
     PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVpv(loglevel)));
-    XPUSHs(sv_2mortal(newSVpv(message)));
+    XPUSHs(sv_2mortal(newSVpvf(loglevel)));
+    XPUSHs(sv_2mortal(newSVpvf(buffer)));
     PUTBACK;
 
     call_pv("do_log", G_DISCARD);
 
     FREETMPS;
     LEAVE;
-    
+
     SPAGAIN;
 }
 
-static void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aData, void * apArg) {
-    char* path = zway_data_get_path(aZWay,aData);
+static void myzway_callback(ZWay zway, ZWDataChangeType aType, ZDataHolder data_holder, void * apArg) {
+    char* path = zway_data_get_path(zway,data_holder);
     
     dSP;
     
@@ -111,27 +119,85 @@ static void myzway_callback(ZWay aZWay, ZWDataChangeType aType, ZDataHolder aDat
     SPAGAIN;
 }
 
+static ZDataHolder myzway_dataholder(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
+    zway_data_acquire_lock(zway);
+    
+    ZDataHolder data_holder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
+    if (data_holder == NULL) {
+        myzway_log("error","No data holder for node_id=%i,instance_id=%i,command_id=%i",node_id,instance_id,command_id);
+        zway_data_release_lock(zway);
+    }
+    
+    return data_holder;
+}
+
+static void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg) {
+    switch (type) {
+        case  DeviceAdded:
+            myzway_log("debug","New device added: %i",node_id);
+            break;
+
+        case DeviceRemoved:
+            myzway_log("debug","Device removed: %i",node_id);
+            break;
+
+        case InstanceAdded:
+            myzway_log("debug","New instance added to device %i: %i",node_id,instance_id);
+            break;
+
+        case InstanceRemoved:
+            myzway_log("debug","Instance removed from device %i: %i\n", node_id, instance_id);
+            break;
+
+        case CommandAdded:
+            myzway_log("debug","New Command Class added to device %i:%i: %i\n", node_id, instance_id, command_id);
+            ZDataHolder data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            if (ZDataHolder != NULL) {
+                zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 0); // Do not watch children!
+                zway_data_release_lock(zway);
+            }
+            break;
+
+        case CommandRemoved:
+            myzway_log("debug","Command Class removed from device %i:%i: %i\n", node_id, instance_id, command_id);
+            ZDataHolder data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            if (ZDataHolder != NULL) {
+                zway_data_remove_callback_ex(zway,data_holder,&myzway_callback);
+                zway_data_release_lock(zway);
+            }
+            break;
+    }
+}
+
 int myzway_init(int loglevel) {
-    if (aZWay == NULL) {
+    if (zway == NULL) {
         ZWError result;
-        memset(&aZWay, 0, sizeof(aZWay));
-        result = zway_init(&aZWay, "/dev/ttyAMA0",
+        
+        memset(&zway, 0, sizeof(zway));
+        result = zway_init(
+            &zway, 
+            "/dev/ttyAMA0",
             "/opt/z-way-server/config",
             "/opt/z-way-server/translations",
             "/opt/z-way-server/ZDDX", 
             stdout, 
             loglevel
         );
+        
         if (result == NoError) {
-            result = zway_start(aZWay,NULL);
+            result = zway_device_add_callback(zway, DeviceAdded | DeviceRemoved | InstanceAdded | InstanceRemoved | CommandAdded | CommandRemoved, myzway_device_event, NULL);
+        } else {
+            myzway_log("error","Could not initialize zway %d",result);
+            return -1;
         }
         if (result == NoError) {
-            result = zway_discover(aZWay);
+            result = zway_start(zway,NULL);
+        }
+        if (result == NoError) {
+            result = zway_discover(zway);
         }
         if (result != NoError) {
-            char errormessage[100];
-            sprintf(errormessage,"Could not initialize zway %d",result);
-            myzway_log('error',errormessage);
+            myzway_log("error","Could not start zway %d",result);
             return 0;
         }
     }
@@ -140,33 +206,35 @@ int myzway_init(int loglevel) {
 
 int myzway_finish() {
     ZWError result;
+    
     int success = 1;
-    if (aZWay != NULL) {
-        result = zway_stop(aZWay);
+    if (zway != NULL) {
+        result = zway_stop(zway);
+        
         if (result != NoError) {
-            char errormessage[100];
-            sprintf(errormessage,"Could not finish zway %d",result);
-            myzway_log('error',errormessage);
+            myzway_log("error","Could not finish zway %d",result);
             success = 0;
         }
-        zway_terminate(&aZWay);
+        zway_terminate(&zway);
+        
+        zway = NULL;
     }
+    
     return success;
 }
 
-int myzway_add_callback(int DeviceId, int InstanceId, int CommandClass) {
-    zway_data_acquire_lock(aZWay);
-    ZDataHolder dataHolder = zway_find_device_instance_cc_data(aZWay, DeviceId, InstanceId, CommandClass, "");
+/*
+int myzway_add_callback(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
+    zway_data_acquire_lock(zway);
+    ZDataHolder dataHolder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
     if (dataHolder != NULL) {
-        zway_data_add_callback_ex(aZWay, dataHolder, &myzway_callback, 1, "");
+        zway_data_add_callback_ex(zway, dataHolder, &myzway_callback, 1, "");
     } else {
-        char errormessage[100];
-        sprintf(errormessage,"No data holder for deviceId=%i,instanceId=%i,CommandClass=%i",DeviceId,InstanceId,CommandClass);
-        myzway_log('error',errormessage);
+        myzway_log("error","No data holder for node_id=%i,instanceId=%i,CommandClass=%i",node_id,instance_id,command_id);
         return 0;
     }
-    zway_data_release_lock(aZWay);
+    zway_data_release_lock(zway);
     return 1;
 }
-
+*/
 
