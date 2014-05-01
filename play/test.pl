@@ -15,12 +15,13 @@ use Inline
     C       => 'DATA',
     NAME    => __PACKAGE__;
 
-say "PRE INIT";
+say "<perl>PRE INIT $$  ";
+sleep(10);
 myzway_init(3);
-say "POST INIT";
+say "<perl>POST INIT";
 
 sub do_log {
-    say "<perl>Got callback ".join(';',@_);
+    say "<perl>Got callback (".join(';',@_).")";
 }
 
 Inline->init()
@@ -28,9 +29,7 @@ Inline->init()
 __DATA__
 __C__
 
-#include <ZWayLib.h>;
-
-ZWay aZWay;
+ZWay zway;
 
 static void myzway_log(char *loglevel, char *message) {
     printf("<c>enter myzway_log (%s)\n",message);
@@ -54,32 +53,37 @@ static void myzway_log(char *loglevel, char *message) {
 }
 
 int myzway_init(int loglevel) {
+    ZWError result;
+    
+    printf("<c>XXX1\n");
     myzway_log("info","Start init zway");
 
-    if (aZWay == NULL) {
-        ZWError result;
-        memset(&aZWay, 0, sizeof(aZWay));
-        myzway_log("info","Pre init zway");
-        result = zway_init(&aZWay, "/dev/ttyAMA0",  
-            	"/opt/z-way-server/config",
-            	"/opt/z-way-server/translations",
-            	"/opt/z-way-server/ZDDX", 
+    memset(&zway, 0, sizeof(zway));
+    myzway_log("info","Pre init zway");
+    printf("<c>XXX2\n");
+    result = zway_init(
+        &zway, 
+        "/dev/ttyAMA0",  
+    	"/opt/z-way-server/config",
+    	"/opt/z-way-server/translations",
+    	"/opt/z-way-server/ZDDX", 
 		stdout, 
-		loglevel); 
-        myzway_log('info','Post init zway');
-        if (result == NoError) {
-            result = zway_start(aZWay,NULL);
-        }
-        //if (result == NoError) {
-        //    result = zway_discover(aZWay);
-        //}
-        if (result != NoError) {
-            char errormessage[100];
-            sprintf(errormessage,"Could not initialize zway %d",result);
-            myzway_log('error',errormessage);
-            return 0;
-        }
+       	loglevel
+   	);
+   	printf("<c>XXX3\n");
+    myzway_log("info","Post init zway");
+    hase;
+    if (result == NoError) {
+        result = zway_start(zway,NULL);
+    }
+    
+    if (result != NoError) {
+        char errormessage[100];
+        printf(errormessage,"<c>Could not initialize zway %d",result);
+        myzway_log("error",errormessage);
+        return 0;
     }
 
+printf("<c>XXX4");
     return 1;
 }

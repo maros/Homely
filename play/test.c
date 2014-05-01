@@ -22,6 +22,24 @@ void print_term_event(ZWay zway)
 	printf("Z-Way terminated\n");
 }
 
+void add_callback(const ZWay zway,ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id,char *path)
+{
+	printf("Acquire lock...\n");
+	zway_data_acquire_lock(zway);
+
+	printf("Get data holder...\n");
+	ZDataHolder dataHolder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, path);
+
+	if (dataHolder != NULL) {
+		printf("Add callback for node_id=%i instance_id=%i command_id=%i...\n",node_id,instance_id,command_id);
+		zway_data_add_callback_ex(zway, dataHolder, &dataChangeCallback, TRUE, "");
+	} else {
+		printf("No data holder for deviceId=%i instanceId=%i command_id=%i\n",node_id,instance_id,command_id);
+	}
+	printf("Release lock...\n");
+	zway_data_release_lock(zway);
+}
+
 void print_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg)
 {
     switch (type)
@@ -44,6 +62,7 @@ void print_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id
 
         case CommandAdded:
         	printf("New Command Class added to device %i:%i: %i\n", node_id, instance_id, command_id);
+        	add_callback(zway,node_id,instance_id,command_id,"");
             break;
 
         case CommandRemoved:
@@ -51,7 +70,6 @@ void print_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id
             break;
     }
 }
-
 
 int main(int argc, char ** argv)
 {
@@ -67,7 +85,7 @@ int main(int argc, char ** argv)
 		"/opt/z-way-server/translations",
 		"/opt/z-way-server/ZDDX",
 		stdout,
-		Debug);
+		Warning);
 
 	if (result == NoError) {
 		printf("Adding device events...\n");
@@ -110,28 +128,10 @@ int main(int argc, char ** argv)
 	*/
 
 	if (result == NoError) {
-		printf("Acquire lock...\n");
-		zway_data_acquire_lock(zway);
-		printf("Get data holder...\n");
-		int deviceid,instanceid;
-		for (deviceid = 1; deviceid <= 3; deviceid++) {
-			for (instanceid = 0; instanceid <= 2; instanceid++) {
-				ZDataHolder dataHolder = zway_find_device_instance_cc_data(zway, deviceid, instanceid, 0x20, "mylevel");
-				if (dataHolder != NULL) {
-					printf("Add callback for deviceId=%i instanceId=%i...\n",deviceid,instanceid);
-					zway_data_add_callback_ex(zway, dataHolder, &dataChangeCallback, TRUE, "");
-				} else {
-					printf("No data holder for deviceId=%i instanceId=%i\n",deviceid,instanceid);
-				}
-			}
-		}
-		printf("Release lock...\n");
-		zway_data_release_lock(zway);
-
 		printf("Run loop...\n");
 		signal(SIGINT, inthand);
 		while (!stop && zway_is_running(zway)) {
-			printf("IDLE: %i",zway_is_idle(zway));
+			printf("IDLE: %i\n",zway_is_idle(zway));
 			sleep(1);
 		}
 
