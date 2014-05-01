@@ -73,12 +73,12 @@ __C__
 
 ZWay zway;
 
-static void myzway_log(char *loglevel, char *format ...) {
+static void myzway_log(char *loglevel, char *format, ...) {
     va_list argptr;
-    char *buffer;
+    char buffer[100];
     
-    va_start(argptr,loglevel);
-    ret = vsprintf(buffer, format, aptr);
+    va_start(argptr,format);
+    vsprintf(buffer, format, argptr);
     va_end(argptr);
     
     dSP;
@@ -108,7 +108,8 @@ static void myzway_callback(ZWay zway, ZWDataChangeType aType, ZDataHolder data_
     SAVETMPS;
 
     PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVpv(path)));
+    XPUSHs(sv_2mortal(newSVpvf(path)));
+    //XPUSHs(sv_2mortal(newSViv(data_holder)));
     PUTBACK;
 
     call_pv("do_callback", G_DISCARD);
@@ -131,7 +132,9 @@ static ZDataHolder myzway_dataholder(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE 
     return data_holder;
 }
 
-static void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg) {
+void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg) {
+    myzway_log("warning","Device event %i",1);
+    ZDataHolder data_holder;
     switch (type) {
         case  DeviceAdded:
             myzway_log("debug","New device added: %i",node_id);
@@ -151,18 +154,18 @@ static void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE
 
         case CommandAdded:
             myzway_log("debug","New Command Class added to device %i:%i: %i\n", node_id, instance_id, command_id);
-            ZDataHolder data_holder = myzway_dataholder(node_id, instance_id, command_id);
-            if (ZDataHolder != NULL) {
-                zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 0); // Do not watch children!
+            data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            if (data_holder != NULL) {
+                zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 0, ""); // Do not watch children!
                 zway_data_release_lock(zway);
             }
             break;
 
         case CommandRemoved:
             myzway_log("debug","Command Class removed from device %i:%i: %i\n", node_id, instance_id, command_id);
-            ZDataHolder data_holder = myzway_dataholder(node_id, instance_id, command_id);
-            if (ZDataHolder != NULL) {
-                zway_data_remove_callback_ex(zway,data_holder,&myzway_callback);
+            data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            if (data_holder != NULL) {
+                zway_data_remove_callback_ex(zway,data_holder,&myzway_callback,"");
                 zway_data_release_lock(zway);
             }
             break;
@@ -226,9 +229,9 @@ int myzway_finish() {
 /*
 int myzway_add_callback(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
     zway_data_acquire_lock(zway);
-    ZDataHolder dataHolder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
+    ZDataHolder data_holder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
     if (dataHolder != NULL) {
-        zway_data_add_callback_ex(zway, dataHolder, &myzway_callback, 1, "");
+        zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 1, "");
     } else {
         myzway_log("error","No data holder for node_id=%i,instanceId=%i,CommandClass=%i",node_id,instance_id,command_id);
         return 0;
