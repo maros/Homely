@@ -38,25 +38,25 @@ sub DEMOLISH {
     myzway_finish(); 
 }
 
-sub add_callback {
-    my ($self,$device,$instance,$command,$callback) = @_;
-    
-    die('Device, instance, command or callback missing')
-        unless defined $device
-        && defined $instance
-        && defined $command
-        && defined $callback
-        && ref($callback) eq 'CODE';
-    
-    my $symbol = '&callback_'.$device.'_'.$instance.'_'.$command;
-    unless ($stash->has_symbol($symbol)) {
-        $stash->add_symbol($symbol,sub {
-            $log->debug('Got callback from DeviceId='.$device.',InstanceId='.$instance.'CommandClass='.$command);
-            $callback->($device,$instance,$command,@_);
-        });
-    }
-    myzway_add_callback($device,$instance,$command);
-}
+#sub add_callback {
+#    my ($self,$device,$instance,$command,$callback) = @_;
+#    
+#    die('Device, instance, command or callback missing')
+#        unless defined $device
+#        && defined $instance
+#        && defined $command
+#        && defined $callback
+#        && ref($callback) eq 'CODE';
+#    
+#    my $symbol = '&callback_'.$device.'_'.$instance.'_'.$command;
+#    unless ($stash->has_symbol($symbol)) {
+#        $stash->add_symbol($symbol,sub {
+#            $log->debug('Got callback from DeviceId='.$device.',InstanceId='.$instance.'CommandClass='.$command);
+#            $callback->($device,$instance,$command,@_);
+#        });
+#    }
+#    myzway_add_callback($device,$instance,$command);
+#}
 
 sub do_callback {
     my ($path) = @_;
