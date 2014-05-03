@@ -1,18 +1,23 @@
 # ============================================================================
 package App::Homely::Connector::ZWave;
 # ============================================================================
-use strict;
-use warnings;
 use utf8;
+use 5.014;
 
 use Moose;
 extends qw(App::Homely::Connector);
 
-use Inline 
+use Inline
     C               => 'Config', 
     LIBS            => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive',
     INC             => '-I/opt/z-way-server/libzway-dev',
-    AUTO_INCLUDE    => '#include "ZWayLib.h"';
+    AUTO_INCLUDE    => '#include "ZWayLib.h"
+#include <pthread.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/select.h>',
     # DEBUG ONLY
     CLEAN_AFTER_BUILD=> 0,
     BUILD_NOISY     => 1;
@@ -28,9 +33,10 @@ my $stash = Package::Stash->new(__PACKAGE__);
 
 sub init {
     my ($self) = @_;
-    my $core = App::Homely::Core->instance;
-    myzway_init(0);
-    warn myzway_init($core->debug ? 0:3);
+    myzway_init(3);
+    #my $core = App::Homely::Core->instance;
+    #myzway_init($core->debug ? 0:3);
+    return $self;
 }
 
 sub DEMOLISH {
@@ -38,35 +44,23 @@ sub DEMOLISH {
     myzway_finish(); 
 }
 
-#sub add_callback {
-#    my ($self,$device,$instance,$command,$callback) = @_;
-#    
-#    die('Device, instance, command or callback missing')
-#        unless defined $device
-#        && defined $instance
-#        && defined $command
-#        && defined $callback
-#        && ref($callback) eq 'CODE';
-#    
-#    my $symbol = '&callback_'.$device.'_'.$instance.'_'.$command;
-#    unless ($stash->has_symbol($symbol)) {
-#        $stash->add_symbol($symbol,sub {
-#            $log->debug('Got callback from DeviceId='.$device.',InstanceId='.$instance.'CommandClass='.$command);
-#            $callback->($device,$instance,$command,@_);
-#        });
-#    }
-#    myzway_add_callback($device,$instance,$command);
-#}
-
 sub do_callback {
     my ($path) = @_;
     my $self = __PACKAGE__->instance;
-    $log->debug('Got callback from '.$path);
+    $log->debug('Got callback from '.$path.' via ');
 }
 
 sub do_log {
     my ($loglevel,$message) = @_;
-    $log->$loglevel('LOG'.$message);
+    warn "------> $loglevel - $message";
+    #$log->$loglevel('LOG'.$message);
+}
+
+sub loop {
+    while(1) { 
+        say "CHECK:".myzway_check();
+        sleep 1 
+    }
 }
 
 1;
@@ -75,26 +69,38 @@ __DATA__
 __C__
 
 ZWay zway;
+pthread_t main_thread;
+int fd[2];
+
+static int myzway_in_mainthread() {
+    if (main_thread == (unsigned int)pthread_self()) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 static void myzway_log(char *loglevel, char *format, ...) {
     va_list argptr;
-    char buffer[100];
+    char buffer[200];
     
     va_start(argptr,format);
     vsprintf(buffer, format, argptr);
     va_end(argptr);
     
+    printf("(PID=%i,TID=%i)myzway_log going to call do_log with: %s,%s\n",getpid(),(unsigned int)pthread_self(),loglevel,buffer);
+    
     dSP;
     
     ENTER;
     SAVETMPS;
-
+    
     PUSHMARK(SP);
     XPUSHs(sv_2mortal(newSVpvf(loglevel)));
     XPUSHs(sv_2mortal(newSVpvf(buffer)));
     PUTBACK;
-
-    call_pv("do_log", G_DISCARD);
+    
+    call_pv("do_log", G_DISCARD|G_VOID);
 
     FREETMPS;
     LEAVE;
@@ -102,25 +108,10 @@ static void myzway_log(char *loglevel, char *format, ...) {
     SPAGAIN;
 }
 
-static void myzway_callback(ZWay zway, ZWDataChangeType aType, ZDataHolder data_holder, void * apArg) {
+static void myzway_event(ZWay zway, ZWDataChangeType aType, ZDataHolder data_holder, void * apArg) {
     char *path = zway_data_get_path(zway,data_holder);
-    
-    dSP;
-    
-    ENTER;
-    SAVETMPS;
-
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVpvf(path)));
-    //XPUSHs(sv_2mortal(newSViv(data_holder)));
-    PUTBACK;
-
-    call_pv("do_callback", G_DISCARD);
-
-    FREETMPS;
-    LEAVE;
-    
-    SPAGAIN;
+    zway_log(zway, Debug, ZSTR("[myzway_event] Got data holder event: %s\n"), path);
+    write(fd[1], path, strlen(path));
 }
 
 static ZDataHolder myzway_dataholder(const ZWay zway, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
@@ -134,40 +125,40 @@ static ZDataHolder myzway_dataholder(const ZWay zway, ZWBYTE node_id, ZWBYTE ins
     return data_holder;
 }
 
-void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg) {
-    myzway_log("warning","Device event %i",1);
+static void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id, void *arg) {
     ZDataHolder data_holder;
+    
     switch (type) {
         case  DeviceAdded:
-            myzway_log("debug","New device added: %i",node_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] New device added: %i\n"), node_id);
             break;
 
         case DeviceRemoved:
-            myzway_log("debug","Device removed: %i",node_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] Device removed: %i\n"),node_id);
             break;
 
         case InstanceAdded:
-            myzway_log("debug","New instance added to device %i: %i",node_id,instance_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] New instance added to device %i: %i\n"),node_id,instance_id);
             break;
 
         case InstanceRemoved:
-            myzway_log("debug","Instance removed from device %i: %i\n", node_id, instance_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] Instance removed from device %i: %i\n"), node_id, instance_id);
             break;
 
         case CommandAdded:
-            myzway_log("debug","New Command Class added to device %i:%i: %i\n", node_id, instance_id, command_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] Command Class added to device %i:%i: %i\n"), node_id, instance_id, command_id);
             data_holder = myzway_dataholder(zway, node_id, instance_id, command_id);
             if (data_holder != NULL) {
-                zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 0, ""); // Do not watch children!
+                zway_data_add_callback_ex(zway, data_holder, &myzway_event, 0, ""); // Do not watch children!
                 zway_data_release_lock(zway);
             }
             break;
 
         case CommandRemoved:
-            myzway_log("debug","Command Class removed from device %i:%i: %i\n", node_id, instance_id, command_id);
+            zway_log(zway, Debug, ZSTR("[myzway_device_event] Command Class removed from device %i:%i: %i\n"), node_id, instance_id, command_id);
             data_holder = myzway_dataholder(zway, node_id, instance_id, command_id);
             if (data_holder != NULL) {
-                zway_data_remove_callback_ex(zway,data_holder,&myzway_callback,"");
+                zway_data_remove_callback_ex(zway, data_holder, &myzway_event, "");
                 zway_data_release_lock(zway);
             }
             break;
@@ -177,6 +168,11 @@ void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_i
 int myzway_init(int loglevel) {
     if (zway == NULL) {
         ZWError result;
+        
+        main_thread = pthread_self();        
+        pipe(fd);
+        
+        myzway_log("info","Initializing zway %i",1);
         
         memset(&zway, 0, sizeof(zway));
         result = zway_init(
@@ -196,10 +192,16 @@ int myzway_init(int loglevel) {
             return -1;
         }
         if (result == NoError) {
+            myzway_log("warning","Start zway");
             result = zway_start(zway,NULL);
         }
         if (result == NoError) {
+            myzway_log("warning","Discover zway");
             result = zway_discover(zway);
+            
+            if (myzway_in_mainthread()) {
+                close(fd[1]);
+            }
         }
         if (result != NoError) {
             myzway_log("error","Could not start zway %d",result);
@@ -214,6 +216,8 @@ int myzway_finish() {
     
     int success = 1;
     if (zway != NULL) {
+        zway_log(zway, Debug, ZSTR("[myzway_finish] Finish zway server\n"));
+        
         result = zway_stop(zway);
         
         if (result != NoError) {
@@ -228,18 +232,51 @@ int myzway_finish() {
     return success;
 }
 
-/*
-int myzway_add_callback(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
-    zway_data_acquire_lock(zway);
-    ZDataHolder data_holder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
-    if (dataHolder != NULL) {
-        zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 1, "");
-    } else {
-        myzway_log("error","No data holder for node_id=%i,instanceId=%i,CommandClass=%i",node_id,instance_id,command_id);
+int myzway_check() {
+    char    readbuffer[100];
+    int     rv;
+    fd_set  set;
+    struct  timeval timeout;
+    
+    FD_ZERO(&set);
+    FD_SET(fd[0], &set);
+    
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 1000;
+    
+    rv = select(fd[0] + 1, &set, NULL, NULL, &timeout);
+    if(rv == -1) {
+        perror("select");
         return 0;
+    } else if (rv == 1) {
+        rv = read( fd[0], readbuffer, sizeof(readbuffer) );
+        
+        printf("Received string: %s : %i\n", readbuffer,rv);
+        if (rv == 1) {
+            printf("(PID=%i,TID=%i)myzway_check going to call do_callback with: %s\n",getpid(),(unsigned int)pthread_self(),readbuffer);
+            
+            dSP;
+            
+            ENTER;
+            SAVETMPS;
+        
+            PUSHMARK(SP);
+            XPUSHs(sv_2mortal(newSVpvf(readbuffer)));
+            PUTBACK;
+        
+            call_pv("do_callback", G_DISCARD|G_VOID);
+        
+            FREETMPS;
+            LEAVE;
+            
+            SPAGAIN;
+        }
     }
-    zway_data_release_lock(zway);
-    return 1;
+    
+    return rv;
 }
-*/
+  
+
+  
+
 
