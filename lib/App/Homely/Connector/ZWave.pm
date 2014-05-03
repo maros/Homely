@@ -103,7 +103,7 @@ static void myzway_log(char *loglevel, char *format, ...) {
 }
 
 static void myzway_callback(ZWay zway, ZWDataChangeType aType, ZDataHolder data_holder, void * apArg) {
-    char* path = zway_data_get_path(zway,data_holder);
+    char *path = zway_data_get_path(zway,data_holder);
     
     dSP;
     
@@ -123,15 +123,14 @@ static void myzway_callback(ZWay zway, ZWDataChangeType aType, ZDataHolder data_
     SPAGAIN;
 }
 
-static ZDataHolder myzway_dataholder(ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
+static ZDataHolder myzway_dataholder(const ZWay zway, ZWBYTE node_id, ZWBYTE instance_id, ZWBYTE command_id) {
     zway_data_acquire_lock(zway);
     
     ZDataHolder data_holder = zway_find_device_instance_cc_data(zway, node_id, instance_id, command_id, "");
     if (data_holder == NULL) {
-        myzway_log("error","No data holder for node_id=%i,instance_id=%i,command_id=%i",node_id,instance_id,command_id);
+        zway_log(zway, Error, ZSTR("[myzway_device_event] No data holder for node_id=%i,instance_id=%i,command_id=\n"), node_id, instance_id,command_id);
         zway_data_release_lock(zway);
     }
-    
     return data_holder;
 }
 
@@ -157,7 +156,7 @@ void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_i
 
         case CommandAdded:
             myzway_log("debug","New Command Class added to device %i:%i: %i\n", node_id, instance_id, command_id);
-            data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            data_holder = myzway_dataholder(zway, node_id, instance_id, command_id);
             if (data_holder != NULL) {
                 zway_data_add_callback_ex(zway, data_holder, &myzway_callback, 0, ""); // Do not watch children!
                 zway_data_release_lock(zway);
@@ -166,7 +165,7 @@ void myzway_device_event(const ZWay zway, ZWDeviceChangeType type, ZWBYTE node_i
 
         case CommandRemoved:
             myzway_log("debug","Command Class removed from device %i:%i: %i\n", node_id, instance_id, command_id);
-            data_holder = myzway_dataholder(node_id, instance_id, command_id);
+            data_holder = myzway_dataholder(zway, node_id, instance_id, command_id);
             if (data_holder != NULL) {
                 zway_data_remove_callback_ex(zway,data_holder,&myzway_callback,"");
                 zway_data_release_lock(zway);
