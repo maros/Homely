@@ -13,6 +13,9 @@ use Inline
     LIBS            => '-L/opt/z-way-server/libs -L/lib/arm-linux-gnueabihf -L/usr/lib/arm-linux-gnueabihf -lzway -lxml2 -lpthread -lcrypto -larchive',
     INC             => '-I/opt/z-way-server/libzway-dev',
     AUTO_INCLUDE    => '#include "ZWayLib.h"';
+    # DEBUG ONLY
+    CLEAN_AFTER_BUILD=> 0,
+    BUILD_NOISY     => 1;
     
 use Inline 
     C       => 'DATA',
