@@ -10,5 +10,5 @@ use lib "$FindBin::Bin/../lib";
 
 use App::Homely::Connector::ZWave;
 
-App::Homely::Connector::ZWave->init()->loop;
+App::Homely::Connector::ZWave->init();
 
